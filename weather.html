@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Weather Data</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="app.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Get the query parameter from the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const city = urlParams.get('q');
+
+            // Call the getWeatherData function with the searched city and card
+            getWeatherData(city, document.querySelector(".card"));
+
+            // function to get weather data from API
+            function getWeatherData(city, card) {
+                $.ajax({
+                    method: "GET",
+                    url: "https://api.openweathermap.org/data/2.5/weather?",
+                    data: {
+                        q: city,
+                        units: "metric",
+                        appid: "d96ab45589d9ac0bc847d4a88d3d6355"
+                    },
+                    success: function (response) {
+                        // display weather data on card
+                        displayWeatherData(response, card);
+                        //weather data save to local storage
+                        localStorage.setItem("weatherData", JSON.stringify(response));
+                    },
+                    error: function () {
+                        // if API call fails, display error message and use last saved weather data from local storage
+                        if (localStorage.getItem("weatherData")) {
+                            displayWeatherData(JSON.parse(localStorage.getItem("weatherData")), card);
+                            alert("Failed to retrieve new data. Showing last saved data from local storage.");
+                        } 
+                        else {
+                            alert("Failed to retrieve data. Please check your internet connection.");
+                        }
+                    }
+                });
+            }
+
+            // function to display weather data on card
+            function displayWeatherData(data, card) {
+                const weatherIcon = card.querySelector(".weather-icon");
+
+                card.querySelector(".city").innerHTML = data.name; // Set the city name
+                card.querySelector(".temp").innerHTML = Math.round(data.main.temp) + "°C"; // Set the temperature
+                card.querySelector(".humidity").innerHTML = data.main.humidity + "%"; // Set the humidity
+                card.querySelector(".wind").innerHTML = data.wind.speed + " km/hr"; // Set the wind speed
+
+                // Set the weather icon based on weather conditions
+                if (data.weather[0].main == "Clouds") {
+                    weatherIcon.src = "icons/clouds.png";
+                } else if (data.weather[0].main == "Clear") {
+                    weatherIcon.src = "icons/clear.png";
+                } else if (data.weather[0].main == "Rain") {
+                    weatherIcon.src = "icons/rain.png";
+                } else if (data.weather[0].main == "Drizzle") {
+                    weatherIcon.src = "icons/drizzle.png";
+                } else if (data.weather[0].main == "Mist") {
+                    weatherIcon.src = "icons/mist.png";
+                } else if (data.weather[0].main == "Snow") {
+                    weatherIcon.src = "icons/snow.png";
+                }
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <div class="card">
+        <div class="weather">
+            <img src="" class="weather-icon">
+            <h1 class="temp"></h1>
+            <h2 class="city"></h2>
+            <div class="details">
+                <div class="col">
+                    <img src="icons/humidity.png">
+                    <div>
+                        <p class="humidity"></p>
+                        <p>Humidity</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <img src="icons/wind.png">
+                    <div>
+                        <p class="wind"></p>
+                        <p>Wind Speed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
